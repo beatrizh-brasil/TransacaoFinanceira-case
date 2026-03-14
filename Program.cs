@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 
 //Obs: Voce é livre para implementar na linguagem de sua preferência, desde que respeite as funcionalidades e saídas existentes, além de aplicar os conceitos solicitados.
@@ -22,11 +23,17 @@ namespace TransacaoFinanceira
                                      new {correlation_id= 8,datetime="09/09/2023 14:19:01", conta_origem= 573659065L, conta_destino= 675869708L, VALOR= 150},
 
             };
+
+            // lista ordenada por tempo
+            var transacoesOrdenadas = TRANSACOES.OrderBy(x => DateTime.Parse(x.datetime)).ToList();
+
             executarTransacaoFinanceira executor = new executarTransacaoFinanceira();
-            Parallel.ForEach(TRANSACOES, item =>
+            
+            // Trocamos o Parallel.ForEach pelo foreach comum para garantir a cronologia
+            foreach (var item in transacoesOrdenadas)
             {
                 executor.transferir(item.correlation_id, item.conta_origem, item.conta_destino, item.VALOR);
-            });
+            }
 
         }
     }
