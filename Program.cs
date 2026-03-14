@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 
 //Obs: Voce é livre para implementar na linguagem de sua preferência, desde que respeite as funcionalidades e saídas existentes, além de aplicar os conceitos solicitados.
@@ -22,31 +23,41 @@ namespace TransacaoFinanceira
                                      new {correlation_id= 8,datetime="09/09/2023 14:19:01", conta_origem= 573659065L, conta_destino= 675869708L, VALOR= 150},
 
             };
+
+            // lista ordenada por tempo
+            var transacoesOrdenadas = TRANSACOES.OrderBy(x => DateTime.Parse(x.datetime)).ToList();
+
             executarTransacaoFinanceira executor = new executarTransacaoFinanceira();
-            Parallel.ForEach(TRANSACOES, item =>
+            
+            // Trocamos o Parallel.ForEach pelo foreach comum para garantir a cronologia
+            foreach (var item in transacoesOrdenadas)
             {
                 executor.transferir(item.correlation_id, item.conta_origem, item.conta_destino, item.VALOR);
-            });
+            }
 
         }
     }
 
     class executarTransacaoFinanceira: acessoDados
     {
+        private static readonly object _lock = new object();
         public void transferir(int correlation_id, long conta_origem, long conta_destino, decimal valor)
         {
-            contas_saldo conta_saldo_origem = getSaldo<contas_saldo>(conta_origem) ;
-            if (conta_saldo_origem.saldo < valor)
+            lock(_lock)
             {
-                Console.WriteLine("Transacao numero {0 } foi cancelada por falta de saldo", correlation_id);
+                    contas_saldo conta_saldo_origem = getSaldo<contas_saldo>(conta_origem) ;
+                if (conta_saldo_origem.saldo < valor)
+                {
+                    Console.WriteLine("Transacao numero {0} foi cancelada por falta de saldo", correlation_id);
 
-            }
-            else
-            {
-                contas_saldo conta_saldo_destino = getSaldo<contas_saldo>(conta_destino);
-                conta_saldo_origem.saldo -= valor;
-                conta_saldo_destino.saldo += valor;
-                Console.WriteLine("Transacao numero {0} foi efetivada com sucesso! Novos saldos: Conta Origem:{1} | Conta Destino: {2}", correlation_id, conta_saldo_origem.saldo, conta_saldo_destino.saldo);
+                }
+                else
+                {
+                    contas_saldo conta_saldo_destino = getSaldo<contas_saldo>(conta_destino);
+                    conta_saldo_origem.saldo -= valor;
+                    conta_saldo_destino.saldo += valor;
+                    Console.WriteLine("Transacao numero {0} foi efetivada com sucesso! Novos saldos: Conta Origem:{1} | Conta Destino: {2}", correlation_id, conta_saldo_origem.saldo, conta_saldo_destino.saldo);
+                }
             }
         }
     }
