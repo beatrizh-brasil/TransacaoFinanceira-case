@@ -33,20 +33,24 @@ namespace TransacaoFinanceira
 
     class executarTransacaoFinanceira: acessoDados
     {
+        private static readonly object _lock = new object();
         public void transferir(int correlation_id, long conta_origem, long conta_destino, decimal valor)
         {
-            contas_saldo conta_saldo_origem = getSaldo<contas_saldo>(conta_origem) ;
-            if (conta_saldo_origem.saldo < valor)
+            lock(_lock)
             {
-                Console.WriteLine("Transacao numero {0 } foi cancelada por falta de saldo", correlation_id);
+                    contas_saldo conta_saldo_origem = getSaldo<contas_saldo>(conta_origem) ;
+                if (conta_saldo_origem.saldo < valor)
+                {
+                    Console.WriteLine("Transacao numero {0} foi cancelada por falta de saldo", correlation_id);
 
-            }
-            else
-            {
-                contas_saldo conta_saldo_destino = getSaldo<contas_saldo>(conta_destino);
-                conta_saldo_origem.saldo -= valor;
-                conta_saldo_destino.saldo += valor;
-                Console.WriteLine("Transacao numero {0} foi efetivada com sucesso! Novos saldos: Conta Origem:{1} | Conta Destino: {2}", correlation_id, conta_saldo_origem.saldo, conta_saldo_destino.saldo);
+                }
+                else
+                {
+                    contas_saldo conta_saldo_destino = getSaldo<contas_saldo>(conta_destino);
+                    conta_saldo_origem.saldo -= valor;
+                    conta_saldo_destino.saldo += valor;
+                    Console.WriteLine("Transacao numero {0} foi efetivada com sucesso! Novos saldos: Conta Origem:{1} | Conta Destino: {2}", correlation_id, conta_saldo_origem.saldo, conta_saldo_destino.saldo);
+                }
             }
         }
     }
