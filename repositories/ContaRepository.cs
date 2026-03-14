@@ -39,7 +39,7 @@ namespace TransacaoFinanceira.Repositories {
             if (index != -1)
             {
                 _tabelaSaldos[index] = conta;
-                SalvarAlteracoes();
+                //SalvarAlteracoes();
             }
         }
 
