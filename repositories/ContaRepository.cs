@@ -12,7 +12,7 @@ namespace TransacaoFinanceira.Repositories {
 
         public ContaRepository()
         {
-            // 1. Configuramos para ignorar diferença entre maiúsculas e minúsculas
+
             var options = new JsonSerializerOptions 
             { 
                 PropertyNameCaseInsensitive = true 
@@ -21,7 +21,7 @@ namespace TransacaoFinanceira.Repositories {
             try {
                 string jsonString = File.ReadAllText(_filePath);
                 
-                // 2. Aplicamos as options aqui
+                // Aplicamos as options aqui
                 _tabelaSaldos = JsonSerializer.Deserialize<List<ContaSaldo>>(jsonString, options) 
                                 ?? new List<ContaSaldo>();
             }
@@ -39,13 +39,13 @@ namespace TransacaoFinanceira.Repositories {
             if (index != -1)
             {
                 _tabelaSaldos[index] = conta;
-                //SalvarAlteracoes();
+                //SalvarAlteracoes(); // para alterar o saldo no json
             }
         }
 
         private void SalvarAlteracoes()
         {
-            // Opcional: Indentar o JSON para ficar bonitinho no arquivo
+            // Indentar o JSON para ficar bonitinho no arquivo
             var options = new JsonSerializerOptions { WriteIndented = true };
             string jsonString = JsonSerializer.Serialize(_tabelaSaldos, options);
             File.WriteAllText(_filePath, jsonString);
